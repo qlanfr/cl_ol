@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_HUB_CREDS = credentials('docker-hub-credentials')
+        IMAGE_NAME = 'pinnet/ollama-phi'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                sh "echo ${DOCKER_HUB_CREDS_PSW} | docker login -u ${DOCKER_HUB_CREDS_USR} --password-stdin"
+                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "docker push ${IMAGE_NAME}:latest"
+            }
+        }
+        
+		stage('Deploy to Oracle Cloud') {
+	    steps {
+		sshagent(['oracle-cloud-ssh-key']) {
+		    sh '''
+		        ssh -o StrictHostKeyChecking=no ubuntu@144.24.84.181 "cd /home/ubuntu/ollama-deployment && \
+		        docker pull ${IMAGE_NAME}:latest && \
+		        docker stop ollama-container || true && \
+		        docker rm ollama-container || true && \
+		        docker run -d --name ollama-container -p 80:80 -p 443:443 -p 11434:11434 ${IMAGE_NAME}:latest"
+		    '''
+		}
+	    }
+	}
+    }
+    
+    post {
+        always {
+            sh "docker logout"
+        }
+    }
+}
