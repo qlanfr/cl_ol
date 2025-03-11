@@ -21,16 +21,6 @@ echo "Nginx 시작 중..."
 service nginx start
 
 
-cd /opt/open-webui
-if [ ! -f .env ]; then
-    echo "OpenWebUI .env 파일 생성 중..."
-    cp .env.example .env || echo "환경 변수 파일 복사 실패"
-fi
-
-
-echo "OpenWebUI 시작 중..."
-conda activate ollama
-python3.12 -m uvicorn main:app --host 0.0.0.0 --port 8080
-
+exec "$@"
 
 wait

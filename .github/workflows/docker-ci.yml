@@ -26,4 +26,3 @@ jobs:
       - name: Docker Hub에 푸시
         run: docker push ${{ secrets.DOCKER_USERNAME }}/cl_ol:latest
 
-# myapp 은 도커 허브에 올린 이미지 파일을 작성해야 함
