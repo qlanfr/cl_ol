@@ -33,7 +33,7 @@ pipeline {
 	    steps {
 		sshagent(['oracle-cloud-ssh-key']) {
 		    sh '''
-		        ssh -o StrictHostKeyChecking=no ubuntu@144.24.84.181 "cd /home/ubuntu/ollama-deployment && \
+		        ssh -o StrictHostKeyChecking=no ubuntu@144.24.71.211 "cd /home/ubuntu/ollama-deployment && \
 		        docker pull ${IMAGE_NAME}:latest && \
 		        docker stop ollama-container || true && \
 		        docker rm ollama-container || true && \
